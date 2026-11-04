@@ -1,198 +1,275 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>道路占用承诺书</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>承诺书（道路占用）</title>
 <style>
   /* ================= 基础 ================= */
-  *, *::before, *::after { box-sizing: border-box; }
+  * { -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; padding: 0; }
+
   body {
-    background: #eceff3;
-    font-family: "宋体", SimSun, serif;
-    -webkit-font-smoothing: antialiased;
+    background: #e9ecef;
+    font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    padding: 76px 16px 48px;
   }
 
   /* ================= 工具栏 ================= */
   .toolbar {
-    position: sticky; top: 0; z-index: 999;
-    background: rgba(255,255,255,.94);
-    backdrop-filter: blur(6px);
-    border-bottom: 1px solid #dfe3e8;
-  }
-  .toolbar-inner {
-    max-width: 210mm; margin: 0 auto;
-    padding: 10px 16px;
-    display: flex; flex-wrap: wrap;
-    align-items: center; justify-content: space-between;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 10px;
+    flex-wrap: wrap;
+    background: #ffffff;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, .12);
+    z-index: 999;
+    padding: 8px 16px;
+    box-sizing: border-box;
   }
-  .toolbar-title {
-    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
-    font-size: 15px; font-weight: 600; color: #1f2937;
-  }
-  .btns { display: flex; flex-wrap: wrap; gap: 8px; }
-  .btn {
-    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  .toolbar .hint {
+    color: #8a949e;
     font-size: 13px;
-    padding: 7px 14px;
-    border-radius: 6px;
-    border: 1px solid #cbd5e1;
-    background: #fff;
-    color: #1f2937;
-    cursor: pointer;
-    transition: .15s;
+    margin-right: 4px;
     white-space: nowrap;
   }
-  .btn:hover { background: #f1f5f9; border-color: #94a3b8; }
-  .btn:active { transform: translateY(1px); }
-  .btn-primary { background: #2563eb; border-color: #2563eb; color: #fff; }
-  .btn-primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
-  .btn:disabled { opacity: .6; cursor: not-allowed; }
+  .toolbar button {
+    padding: 8px 18px;
+    border: 1px solid #c9d2dc;
+    background: #f7f9fb;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #2c3e50;
+    cursor: pointer;
+    font-family: inherit;
+    transition: .18s;
+    white-space: nowrap;
+  }
+  .toolbar button:hover { background: #e8f0fe; border-color: #7aa7e0; }
+  .toolbar button:active { transform: translateY(1px); }
+  .toolbar button:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+  .toolbar button.primary {
+    background: #2c7be5; border-color: #2c7be5; color: #fff;
+  }
+  .toolbar button.primary:hover:not(:disabled) { background: #1a67d0; }
 
   /* ================= A4 纸张 ================= */
-  .page-wrap {
-    padding: 24px 12px 60px;
-    display: flex; justify-content: center;
-    overflow-x: auto;
-  }
-  .paper {
-    width: 210mm;                /* A4 宽 */
-    min-height: 297mm;           /* A4 高 */
-    padding: 20mm 22mm;          /* 版心 166mm 宽 */
-    background: #fff;
-    box-shadow: 0 3px 16px rgba(15, 23, 42, .16);
+  #page {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 25mm 22mm;
+    margin: 0 auto;
+    background: #ffffff;
+    box-sizing: border-box;
+    box-shadow: 0 2px 18px rgba(0, 0, 0, .16);
+    font-family: "宋体", SimSun, "Songti SC", "STSong", serif;
+    font-size: 12pt;
+    line-height: 1.75;
+    color: #000000;
     outline: none;
-    color: #000;
-    font-family: "仿宋_GB2312", "仿宋", FangSong, "STFangsong", "宋体", SimSun, serif;
-    font-size: 13pt;
-    line-height: 1.8;
-    word-break: break-word;
+    word-wrap: break-word;
     overflow-wrap: break-word;
   }
-  .paper:focus { box-shadow: 0 3px 16px rgba(37, 99, 235, .28); }
+  #page:focus { box-shadow: 0 2px 18px rgba(0,0,0,.16), 0 0 0 2px rgba(44,123,229,.28); }
 
-  /* ================= 文档排版 ================= */
-  .doc-title {
-    font-family: "黑体", SimHei, "Heiti SC", "Microsoft YaHei", sans-serif;
-    font-size: 22pt;
-    font-weight: 400;
+  /* ---------- 正文排版 ---------- */
+  #page .doc-title {
+    font-family: "黑体", SimHei, "Heiti SC", "STHeiti", sans-serif;
+    font-size: 18pt;
+    font-weight: 700;
     text-align: center;
-    letter-spacing: .45em;
-    text-indent: .45em;          /* 抵消字间距造成的偏移 */
-    margin: 0 0 16pt;
-    line-height: 1.6;
+    letter-spacing: 4.5pt;
+    line-height: 1.5;
+    text-indent: 0;
+    margin: 0 0 9mm 0;
   }
-  .paper p {
-    margin: 0 0 .45em;
+  #page p {
+    margin: 0 0 6pt 0;
     text-indent: 2em;
     text-align: justify;
+    line-height: 1.75;
   }
-  .signature { margin-top: 26pt; }
-  .signature p { text-indent: 0; margin: 0 0 6pt; }
-  .signature .sig-date {
+  #page .sign-block {
+    margin-top: 12mm;
     text-align: right;
-    padding-right: 1.5em;
-    margin-top: 10pt;
   }
-  .ul {
-    display: inline-block;
-    min-width: 5em;
-    height: 1.1em;
-    border-bottom: 1px solid #000;
-    vertical-align: bottom;
+  #page .sign-block p {
+    text-indent: 0;
+    text-align: right;
+    margin: 0 8mm 6pt 0;
   }
 
-  /* ================= 导出时 ================= */
-  body.exporting .paper { box-shadow: none !important; }
-
-  /* ================= 打印 / 打印预览 ================= */
-  @page { size: A4 portrait; margin: 20mm 22mm; }
+  /* ================= 打印 ================= */
   @media print {
+    @page { size: A4; margin: 0; }
     html, body {
-      background: #fff !important;
       margin: 0 !important;
       padding: 0 !important;
+      background: #ffffff !important;
     }
-    .no-print { display: none !important; }
-    .page-wrap {
-      display: block !important;
-      padding: 0 !important;
-      overflow: visible !important;
-    }
-    .paper {
-      width: auto !important;
-      min-height: auto !important;
-      margin: 0 !important;
-      padding: 0 !important;
+    .toolbar { display: none !important; }
+    #page {
       box-shadow: none !important;
+      margin: 0 !important;
+      outline: none !important;
     }
-    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
 </style>
 </head>
 <body>
 
-<!-- ================= 工具栏（不打印） ================= -->
-<div class="toolbar no-print">
-  <div class="toolbar-inner">
-    <span class="toolbar-title">道路占用承诺书</span>
-    <div class="btns">
-      <button class="btn" id="btnWord" type="button">下载 Word (.doc)</button>
-      <button class="btn btn-primary" id="btnPdf" type="button">下载 PDF</button>
-      <button class="btn" id="btnPreview" type="button">打印预览</button>
-      <button class="btn" id="btnPrint" type="button">打印</button>
-    </div>
+<!-- ==================== 工具栏（不打印、不导出） ==================== -->
+<div class="toolbar">
+  <span class="hint">页面内容可直接点击编辑</span>
+  <button id="btnPreview" type="button">打印预览</button>
+  <button id="btnPrint" type="button" class="primary">打 印</button>
+  <button id="btnWord" type="button">导出 Word</button>
+  <button id="btnPdf" type="button">导出 PDF</button>
+</div>
+
+<!-- ==================== A4 纸（全局可编辑） ==================== -->
+<div id="page" contenteditable="true" spellcheck="false">
+  <h1 class="doc-title">承诺书</h1>
+
+  <p>我单位XXXXXXXXXXXXXXXXXXXXX将于202X年X月XX日至202X年XX月XX日占用龙源路（长宁道—裕华道）自行车道、人行道作为安全通道使用。现就市政道路临时占用期间安全责任、文明作业等方面向贵单位作出如下承诺：</p>
+
+  <p>一、我方严格按照《城市道路管理条例》相关规定和各部门审批内容规范施工，占用自行车道、人行道，不超面积、不超时限，不擅自改变临时占用自行车道、人行道用途。</p>
+
+  <p>二、我方按照唐山市《市政工程工地扬尘治理强化措施实施办法》的通知要求，对施工范围采用标准的围挡设施进行围蔽作业，并设立相关的安全警示等标识。工程竣工后，我方负责恢复由搭建围挡和施工过程造成损坏的自行车道、人行道等市政设施。</p>
+
+  <p>三、我方施工结束后通知市政相关负责人对占用道路进行现场勘察。造成自行车道、人行道或市政设施损坏的，由我方支付相应的维修费用或恢复至设施原貌。工程质量保质期为自竣工验收合格之日起24个月。</p>
+
+  <p>四、在施工期间及质量保质期内，因极端天气、自然灾害等不可抗拒的因素或因我方作业不规范、安全防护设施不到位等原因导致通行人员、周边车辆、我方施工人员等其他任何人身伤害或财产损失的，由我方承担一切赔偿责任和法律后果。</p>
+
+  <p>五、我方占用自行车道、人行道等期满后，需继续占用的，在道路挖掘、占用许可证期满前七个工作日以书面形式申请办理新的挖掘占用手续。</p>
+
+  <p>六、其他未尽事宜双方本着友好协商，进行解决。协商不成的，可向工程所在地的人民法院进行诉讼。</p>
+
+  <div class="sign-block">
+    <p>承诺单位（盖章）：</p>
+    <p>负责人（签字）：</p>
+    <p>联系电话：</p>
+    <p>XXXX年XX月XX日</p>
   </div>
 </div>
 
-<!-- ================= A4 文档区（整页可编辑） ================= -->
-<div class="page-wrap" id="pageWrap">
-  <div class="paper" id="paper" contenteditable="true" spellcheck="false"
-       role="textbox" aria-multiline="true">
-
-    <h1 class="doc-title">承 诺 书</h1>
-
-    <p>我单位XXXXXXXXXXXXXXXXXXXXX将于202X年X月XX日至202X年XX月XX日占用龙源路（长宁道—裕华道）自行车道、人行道作为安全通道使用。现就市政道路临时占用期间安全责任、文明作业等方面向贵单位作出如下承诺：</p>
-
-    <p>一、我方严格按照《城市道路管理条例》相关规定和各部门审批内容规范施工，占用自行车道、人行道，不超面积、不超时限，不擅自改变临时占用自行车道、人行道用途。</p>
-
-    <p>二、我方按照唐山市《市政工程工地扬尘治理强化措施实施办法》的通知要求，对施工范围采用标准的围挡设施进行围蔽作业，并设立相关的安全警示等标识。工程竣工后，我方负责恢复由搭建围挡和施工过程造成损坏的自行车道、人行道等市政设施。</p>
-
-    <p>三、我方施工结束后通知市政相关负责人对占用道路进行现场勘察。造成自行车道、人行道或市政设施损坏的，由我方支付相应的维修费用或恢复至设施原貌。工程质量保质期为自竣工验收合格之日起24个月。</p>
-
-    <p>四、在施工期间及质量保质期内，因极端天气、自然灾害等不可抗拒的因素或因我方作业不规范、安全防护设施不到位等原因导致通行人员、周边车辆、我方施工人员等其他任何人身伤害或财产损失的，由我方承担一切赔偿责任和法律后果。</p>
-
-    <p>五、我方占用自行车道、人行道等期满后，需继续占用的，在道路挖掘、占用许可证期满前七个工作日以书面形式申请办理新的挖掘占用手续。</p>
-
-    <p>六、其他未尽事宜双方本着友好协商，进行解决。协商不成的，可向工程所在地的人民法院进行诉讼。</p>
-
-    <p>七、本协议一式四份，甲、我双方各两份。</p>
-
-    <div class="signature">
-      <p>承诺单位（盖章）：</p>
-      <p>负责人（签字）：<span class="ul">&nbsp;</span>　联系电话：<span class="ul">&nbsp;</span></p>
-      <p class="sig-date">XXXX年XX月XX日</p>
-    </div>
-
-  </div>
-</div>
+<!-- ==================== PDF 引擎 ==================== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <script>
 (function () {
-  'use strict';
+  "use strict";
 
-  var paper = document.getElementById('paper');
-  var btnWord    = document.getElementById('btnWord');
-  var btnPdf     = document.getElementById('btnPdf');
-  var btnPreview = document.getElementById('btnPreview');
-  var btnPrint   = document.getElementById('btnPrint');
-  var FILE_NAME  = '道路占用承诺书';
+  var page     = document.getElementById('page');
+  var btnPdf   = document.getElementById('btnPdf');
+  var btnWord  = document.getElementById('btnWord');
 
-  /* ---------------- 工具：触发下载 ---------------- */
-  function triggerDownload(blob, filename) {
+  /* =========================================================
+     公共页面样式（打印预览 / 导出共用，保证三端布局一致）
+     ========================================================= */
+  var PAGE_CSS = [
+    '@page { size: A4; margin: 0; }',
+    'html, body { margin: 0; padding: 0; background: #e9ecef; }',
+    '.page {',
+    '  width: 210mm; min-height: 297mm; padding: 25mm 22mm; margin: 0 auto;',
+    '  background: #fff; box-sizing: border-box;',
+    '  box-shadow: 0 2px 18px rgba(0,0,0,.16);',
+    '  font-family: "宋体", SimSun, "Songti SC", "STSong", serif;',
+    '  font-size: 12pt; line-height: 1.75; color: #000;',
+    '  word-wrap: break-word; overflow-wrap: break-word;',
+    '}',
+    '.page .doc-title {',
+    '  font-family: "黑体", SimHei, "Heiti SC", "STHeiti", sans-serif;',
+    '  font-size: 18pt; font-weight: 700; text-align: center;',
+    '  letter-spacing: 4.5pt; line-height: 1.5; text-indent: 0;',
+    '  margin: 0 0 9mm 0;',
+    '}',
+    '.page p { margin: 0 0 6pt 0; text-indent: 2em; text-align: justify; line-height: 1.75; }',
+    '.page .sign-block { margin-top: 12mm; text-align: right; }',
+    '.page .sign-block p { text-indent: 0; text-align: right; margin: 0 8mm 6pt 0; }'
+  ].join('\n');
+
+  /* =========================================================
+     0. 粘贴时只保留纯文本，避免带入外部样式破坏排版
+     ========================================================= */
+  page.addEventListener('paste', function (e) {
+    var cd = e.clipboardData || window.clipboardData;
+    if (!cd) return;
+    var text = cd.getData('text/plain');
+    if (text) {
+      e.preventDefault();
+      try {
+        document.execCommand('insertText', false, text);
+      } catch (err) {
+        /* 极少数旧浏览器不支持，交给默认行为 */
+      }
+    }
+  });
+
+  /* =========================================================
+     1. 打印预览（新窗口，含独立“打印/关闭”按钮）
+     ========================================================= */
+  document.getElementById('btnPreview').addEventListener('click', function () {
+    var win = window.open('', '_blank');
+    if (!win) {
+      alert('浏览器拦截了弹出窗口。\n请点击地址栏右侧的“允许弹出窗口”后重试，或直接使用【打印】按钮。');
+      return;
+    }
+
+    var doc = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">' +
+      '<title>打印预览 - 承诺书</title><style>' +
+      PAGE_CSS +
+      '.bar { position: fixed; top: 0; left: 0; right: 0; height: 54px; display: flex;' +
+      ' align-items: center; justify-content: center; gap: 12px; background: #fff;' +
+      ' box-shadow: 0 1px 8px rgba(0,0,0,.12); z-index: 99;' +
+      ' font-family: "Microsoft YaHei", sans-serif; }' +
+      '.bar button { padding: 8px 20px; border: 1px solid #2c7be5; background: #2c7be5;' +
+      ' color: #fff; border-radius: 6px; font-size: 14px; cursor: pointer; font-family: inherit; }' +
+      '.bar button.ghost { background: #fff; color: #2c7be5; }' +
+      '.wrap { padding: 76px 0 48px; }' +
+      '@media print { html, body { background: #fff; }' +
+      ' .bar { display: none !important; } .wrap { padding: 0 !important; }' +
+      ' .page { box-shadow: none !important; margin: 0 !important; } }' +
+      '</style></head><body>' +
+      '<div class="bar"><button type="button" onclick="window.print()">打 印</button>' +
+      '<button type="button" class="ghost" onclick="window.close()">关 闭</button></div>' +
+      '<div class="wrap"><div class="page">' + page.innerHTML + '</div></div>' +
+      '</body></html>';
+
+    win.document.open();
+    win.document.write(doc);
+    win.document.close();
+    win.focus();
+  });
+
+  /* =========================================================
+     2. 打印（直接调起系统打印对话框）
+     ========================================================= */
+  document.getElementById('btnPrint').addEventListener('click', function () {
+    window.print();
+  });
+
+  /* =========================================================
+     3. 导出 Word（.doc，Word 可直接打开）
+     ========================================================= */
+  var WORD_CSS = [
+    '@page WordSection1 { size: 210.0mm 297.0mm; margin: 25.0mm 22.0mm 25.0mm 22.0mm; }',
+    'div.WordSection1 { page: WordSection1; }',
+    'body { font-family: "宋体", SimSun, serif; font-size: 12.0pt; line-height: 175%;' +
+      ' color: #000000; margin: 0; }',
+    'p { margin: 0 0 6.0pt 0; text-indent: 24.0pt; text-align: justify; line-height: 175%; }',
+    '.doc-title { font-family: "黑体", SimHei, sans-serif; font-size: 18.0pt; font-weight: bold;' +
+      ' text-align: center; letter-spacing: 4.5pt; text-indent: 0;' +
+      ' margin: 0 0 9.0mm 0; line-height: 150%; }',
+    '.sign-block { margin-top: 12.0mm; text-align: right; }',
+    '.sign-block p { text-indent: 0; text-align: right; margin: 0 8.0mm 6.0pt 0; }'
+  ].join('\n');
+
+  function downloadBlob(blob, filename) {
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
@@ -200,118 +277,83 @@
     a.style.display = 'none';
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
-    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    setTimeout(function () {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 1500);
   }
 
-  /* ---------------- 工具：打印 ---------------- */
-  function printPage() {
-    if (document.activeElement && typeof document.activeElement.blur === 'function') {
-      document.activeElement.blur();   // 去掉编辑光标，避免打印出光标
-    }
-    setTimeout(function () { window.print(); }, 80);
-  }
-
-  /* ---------------- 粘贴时只保留纯文本 ---------------- */
-  paper.addEventListener('paste', function (e) {
-    e.preventDefault();
-    var text = '';
-    if (e.clipboardData || window.clipboardData) {
-      text = (e.clipboardData || window.clipboardData).getData('text/plain');
-    }
-    document.execCommand('insertText', false, text);
-  });
-
-  /* ---------------- 下载 Word (.doc) ---------------- */
   btnWord.addEventListener('click', function () {
-    var content = paper.innerHTML;
-
-    var docHtml =
+    var html =
       '<html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
-            'xmlns:w="urn:schemas-microsoft-com:office:word" ' +
-            'xmlns="http://www.w3.org/TR/REC-html40">' +
-      '<head><meta charset="utf-8"><title>' + FILE_NAME + '</title>' +
+      'xmlns:w="urn:schemas-microsoft-com:office:word" ' +
+      'xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8">' +
+      '<title>承诺书</title>' +
       '<!--[if gte mso 9]><xml><w:WordDocument>' +
       '<w:View>Print</w:View><w:Zoom>100</w:Zoom>' +
-      '</w:WordDocument></xml><![endif]-->' +
-      '<style>' +
-      '@page WordSection1 { size: 21.0cm 29.7cm; margin: 2.0cm 2.2cm 2.0cm 2.2cm; }' +
-      'div.WordSection1 { page: WordSection1; }' +
-      'body { font-family: "仿宋_GB2312","仿宋",FangSong,"宋体",SimSun,serif; ' +
-              'font-size: 13pt; line-height: 1.8; color: #000; }' +
-      '.doc-title { font-family: "黑体",SimHei,sans-serif; font-size: 22pt; ' +
-                    'font-weight: normal; text-align: center; letter-spacing: .45em; ' +
-                    'text-indent: .45em; margin: 0 0 16pt; line-height: 1.6; }' +
-      'p { margin: 0 0 .45em; text-indent: 2em; text-align: justify; }' +
-      '.signature { margin-top: 26pt; }' +
-      '.signature p { text-indent: 0; margin: 0 0 6pt; }' +
-      '.signature .sig-date { text-align: right; padding-right: 1.5em; margin-top: 10pt; }' +
-      '.ul { display: inline-block; min-width: 5em; height: 1.1em; ' +
-            'border-bottom: 1px solid #000; vertical-align: bottom; }' +
-      '</style></head><body>' +
-      '<div class="WordSection1">' + content + '</div>' +
-      '</body></html>';
+      '<w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->' +
+      '<style>' + WORD_CSS + '</style></head><body>' +
+      '<div class="WordSection1">' + page.innerHTML + '</div></body></html>';
 
-    var blob = new Blob(['\ufeff', docHtml], { type: 'application/msword;charset=utf-8' });
-    triggerDownload(blob, FILE_NAME + '.doc');
+    var blob = new Blob(['\ufeff' + html], {
+      type: 'application/msword;charset=utf-8'
+    });
+    downloadBlob(blob, '承诺书（道路占用）.doc');
   });
 
-  /* ---------------- 下载 PDF ---------------- */
+  /* =========================================================
+     4. 导出 PDF
+     ========================================================= */
   btnPdf.addEventListener('click', function () {
-    var btn = this;
-
+    /* —— 兜底：引擎未加载则提示改用打印存 PDF —— */
     if (typeof window.html2pdf === 'undefined') {
-      alert('PDF 组件未加载（可能处于离线环境）。\n' +
-            '将打开打印窗口，请在"目标打印机"中选择"另存为 PDF"完成保存。');
-      printPage();
+      alert('PDF 组件未能加载（可能网络不通）。\n请点击【打印】按钮，在打印对话框中选择“另存为 PDF”，效果一致。');
       return;
     }
 
-    var oldText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = '生成中…';
-    document.body.classList.add('exporting');
+    var oldShadow  = page.style.boxShadow;
+    var oldOutline = page.style.outline;
 
-    window.html2pdf()
-      .set({
-        margin: 0,
-        filename: FILE_NAME + '.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-          logging: false
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['css', 'legacy'] }
-      })
-      .from(paper)
-      .save()
-      .catch(function (err) {
-        console.error(err);
-        alert('PDF 生成失败：' + (err && err.message ? err.message : err) +
-              '\n已为你打开打印窗口，可选择"另存为 PDF"。');
-        printPage();
-      })
-      .then(function () {
-        document.body.classList.remove('exporting');
-        btn.disabled = false;
-        btn.textContent = oldText;
-      });
-  });
+    /* 导出瞬间去掉阴影/焦点描边，保证 PDF 页面干净、尺寸精确为 210mm */
+    page.style.boxShadow = 'none';
+    page.style.outline   = 'none';
 
-  /* ---------------- 打印预览 / 打印 ---------------- */
-  btnPreview.addEventListener('click', printPage);
-  btnPrint.addEventListener('click', printPage);
+    btnPdf.disabled = true;
+    var oldText = btnPdf.textContent;
+    btnPdf.textContent = '正在生成…';
 
-  /* ---------------- Ctrl / Cmd + P 统一走打印流程 ---------------- */
-  document.addEventListener('keydown', function (e) {
-    if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
-      e.preventDefault();
-      printPage();
+    function restore() {
+      page.style.boxShadow = oldShadow;
+      page.style.outline   = oldOutline;
+      btnPdf.disabled = false;
+      btnPdf.textContent = oldText;
     }
+
+    var opt = {
+      margin: 0,
+      filename: '承诺书（道路占用）.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        scrollX: 0,
+        scrollY: -window.scrollY
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['css', 'legacy'] }
+    };
+
+    window.html2pdf().set(opt).from(page).save().then(function () {
+      restore();
+    }).catch(function (err) {
+      restore();
+      alert('PDF 导出失败：' + (err && err.message ? err.message : err) +
+        '\n请改用【打印】按钮，在打印对话框中选择“另存为 PDF”，效果一致。');
+    });
   });
+
 })();
 </script>
 </body>
