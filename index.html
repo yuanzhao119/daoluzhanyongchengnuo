@@ -2,359 +2,839 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>承诺书（道路占用）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>道路占用承诺书</title>
 <style>
-  /* ================= 基础 ================= */
-  * { -webkit-tap-highlight-color: transparent; }
+  /* ============================================================
+     全局
+     ============================================================ */
+  * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
 
   body {
-    background: #e9ecef;
-    font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
-    padding: 76px 16px 48px;
+    background: #e8eaee;
+    padding-bottom: 56px;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* ================= 工具栏 ================= */
+  /* ============================================================
+     工具栏
+     ============================================================ */
   .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #d8dde5;
+    box-shadow: 0 2px 12px rgba(15, 30, 60, .07);
+    font-family: system-ui, -apple-system, "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 14px;
+  }
+  .toolbar-title {
+    margin-right: auto;
+    font-weight: 600;
+    color: #33415c;
+    letter-spacing: .4px;
+    white-space: nowrap;
+  }
+  .toolbar-meta {
+    font-size: 12px;
+    color: #6b7280;
+    background: #f3f5f8;
+    border: 1px solid #e4e8ee;
+    border-radius: 4px;
+    padding: 3px 9px;
+    white-space: nowrap;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  }
+  .btn {
+    appearance: none;
+    border: 1px solid #c7d0dc;
+    background: #fff;
+    color: #2b3648;
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background .18s, border-color .18s, transform .1s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: #f2f6fc; border-color: #8fa9c9; }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary { background: #2563eb; border-color: #2563eb; color: #fff; }
+  .btn.primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+  .btn.ghost { color: #6b7280; border-color: #e2e6ec; }
+  .btn.ghost:hover { background: #f7f8fa; }
+
+  /* ============================================================
+     A4 纸张 —— 通用文档页边距（四周 2.54cm）
+     纸张：210mm × 297mm
+     边距：上下左右 25.4mm
+     版心：159.2mm × 246.2mm
+     三号字 16pt × 28 字 = 448pt ≈ 158.04mm < 159.2mm
+     ============================================================ */
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 25.4mm;
+
+    margin: 22px auto;
+    background: #ffffff;
+    box-shadow: 0 6px 28px rgba(15, 30, 60, .16);
+    position: relative;
+
+    font-family: "仿宋_GB2312", "FangSong_GB2312", "仿宋", FangSong,
+                 "STFangsong", "Songti SC", "SimSun", serif;
+    font-size: 16pt;
+    line-height: 28.8pt;
+    color: #000000;
+
+    overflow-wrap: break-word;
+    word-break: break-word;
+    outline: none;
+  }
+
+  /* 版心参考线（默认隐藏） */
+  .page::after {
+    content: '';
+    position: absolute;
+    top: 25.4mm;
+    right: 25.4mm;
+    bottom: 25.4mm;
+    left: 25.4mm;
+    border: 1px dashed rgba(220, 38, 38, .55);
+    pointer-events: none;
+    display: none;
+    z-index: 1;
+  }
+  body.show-guides .page::after { display: block; }
+
+  /* ============================================================
+     正文排版
+     ============================================================ */
+  #doc { outline: none; }
+
+  /* 大标题 —— 二号方正小标宋，居中 */
+  #doc .doc-title {
+    font-family: "方正小标宋简体", "FZXiaoBiaoSong-B05S", "华文中宋",
+                 "STZhongsong", "Songti SC", "宋体", SimSun, serif;
+    font-size: 22pt;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 2pt;
+    line-height: 32pt;
+    margin: 0 0 8pt 0;
+    padding: 0;
+    text-indent: 0;
+  }
+
+  /* 普通段落 —— 首行缩进 2 字符 */
+  #doc p {
+    margin: 0;
+    padding: 0;
+    text-indent: 32pt;
+    text-align: justify;
+    text-justify: inter-ideograph;
+    line-height: 28.8pt;
+    letter-spacing: 0;
+  }
+
+  /* 落款 —— 右对齐 */
+  #doc p.sign-right {
+    text-align: right;
+    text-indent: 0;
+    padding-right: 2em;
+  }
+
+  /* ============================================================
+     Toast
+     ============================================================ */
+  #toast {
     position: fixed;
-    top: 0; left: 0; right: 0;
-    min-height: 58px;
+    left: 50%;
+    bottom: 36px;
+    transform: translate(-50%, 16px);
+    background: rgba(30, 41, 59, .94);
+    color: #fff;
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: system-ui, -apple-system, "Microsoft YaHei", sans-serif;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s, transform .25s;
+    z-index: 999;
+    max-width: 80vw;
+    text-align: center;
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  body.exporting .page { box-shadow: none !important; }
+
+  /* ============================================================
+     自检面板
+     ============================================================ */
+  #check-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, .45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    font-family: system-ui, -apple-system, "Microsoft YaHei", sans-serif;
+  }
+  #check-overlay.show { display: flex; }
+
+  .check-panel {
+    width: min(660px, 92vw);
+    max-height: 82vh;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .28);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .check-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e9f0;
+    background: #f8fafc;
+  }
+  .check-head h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #1e293b;
+    font-weight: 600;
+  }
+  .check-summary {
+    margin-left: auto;
+    font-size: 13px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+  .check-summary.pass { background: #dcfce7; color: #15803d; }
+  .check-summary.warn { background: #fef3c7; color: #b45309; }
+  .check-summary.fail { background: #fee2e2; color: #b91c1c; }
+
+  .check-close {
+    appearance: none;
+    border: none;
+    background: transparent;
+    font-size: 22px;
+    line-height: 1;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+  .check-close:hover { color: #475569; }
+
+  .check-body {
+    padding: 8px 0;
+    overflow-y: auto;
+  }
+  .check-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 20px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .check-row:last-child { border-bottom: none; }
+  .check-icon {
+    flex: 0 0 20px;
+    height: 20px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    background: #ffffff;
-    box-shadow: 0 1px 8px rgba(0, 0, 0, .12);
-    z-index: 999;
-    padding: 8px 16px;
-    box-sizing: border-box;
-  }
-  .toolbar .hint {
-    color: #8a949e;
-    font-size: 13px;
-    margin-right: 4px;
-    white-space: nowrap;
-  }
-  .toolbar button {
-    padding: 8px 18px;
-    border: 1px solid #c9d2dc;
-    background: #f7f9fb;
-    border-radius: 6px;
-    font-size: 14px;
-    color: #2c3e50;
-    cursor: pointer;
-    font-family: inherit;
-    transition: .18s;
-    white-space: nowrap;
-  }
-  .toolbar button:hover { background: #e8f0fe; border-color: #7aa7e0; }
-  .toolbar button:active { transform: translateY(1px); }
-  .toolbar button:disabled { opacity: .55; cursor: not-allowed; transform: none; }
-  .toolbar button.primary {
-    background: #2c7be5; border-color: #2c7be5; color: #fff;
-  }
-  .toolbar button.primary:hover:not(:disabled) { background: #1a67d0; }
-
-  /* ================= A4 纸张 ================= */
-  #page {
-    width: 210mm;
-    min-height: 297mm;
-    padding: 25mm 22mm;
-    margin: 0 auto;
-    background: #ffffff;
-    box-sizing: border-box;
-    box-shadow: 0 2px 18px rgba(0, 0, 0, .16);
-    font-family: "宋体", SimSun, "Songti SC", "STSong", serif;
-    font-size: 12pt;
-    line-height: 1.75;
-    color: #000000;
-    outline: none;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-  }
-  #page:focus { box-shadow: 0 2px 18px rgba(0,0,0,.16), 0 0 0 2px rgba(44,123,229,.28); }
-
-  /* ---------- 正文排版 ---------- */
-  #page .doc-title {
-    font-family: "黑体", SimHei, "Heiti SC", "STHeiti", sans-serif;
-    font-size: 18pt;
+    font-size: 12px;
+    color: #fff;
     font-weight: 700;
-    text-align: center;
-    letter-spacing: 4.5pt;
-    line-height: 1.5;
-    text-indent: 0;
-    margin: 0 0 9mm 0;
+    margin-top: 1px;
   }
-  #page p {
-    margin: 0 0 6pt 0;
-    text-indent: 2em;
-    text-align: justify;
-    line-height: 1.75;
+  .check-icon.pass { background: #22c55e; }
+  .check-icon.warn { background: #f59e0b; }
+  .check-icon.fail { background: #ef4444; }
+
+  .check-cat {
+    flex: 0 0 auto;
+    color: #64748b;
+    font-size: 12px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    padding: 1px 7px;
+    margin-top: 1px;
+    white-space: nowrap;
   }
-  #page .sign-block {
-    margin-top: 12mm;
+  .check-name {
+    flex: 1 1 auto;
+    color: #1e293b;
+    font-weight: 500;
+  }
+  .check-detail {
+    flex: 0 0 auto;
+    color: #64748b;
+    font-size: 12.5px;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
     text-align: right;
-  }
-  #page .sign-block p {
-    text-indent: 0;
-    text-align: right;
-    margin: 0 8mm 6pt 0;
+    max-width: 48%;
+    word-break: break-all;
   }
 
-  /* ================= 打印 ================= */
+  .check-foot {
+    padding: 12px 20px;
+    border-top: 1px solid #e5e9f0;
+    background: #f8fafc;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  /* ============================================================
+     打印
+     ============================================================ */
+  @page {
+    size: 210mm 297mm;
+    margin: 25.4mm;
+  }
+
   @media print {
-    @page { size: A4; margin: 0; }
     html, body {
+      background: #fff !important;
       margin: 0 !important;
       padding: 0 !important;
-      background: #ffffff !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
-    .toolbar { display: none !important; }
-    #page {
-      box-shadow: none !important;
+    .toolbar, #toast, #check-overlay { display: none !important; }
+
+    .page {
+      width: 100% !important;
+      min-height: auto !important;
+      padding: 0 !important;
       margin: 0 !important;
-      outline: none !important;
+      box-shadow: none !important;
+      break-after: page;
+      page-break-after: always;
     }
+    .page:last-child {
+      break-after: auto;
+      page-break-after: auto;
+    }
+    .page::after { display: none !important; }
   }
 </style>
 </head>
 <body>
 
-<!-- ==================== 工具栏（不打印、不导出） ==================== -->
-<div class="toolbar">
-  <span class="hint">页面内容可直接点击编辑</span>
-  <button id="btnPreview" type="button">打印预览</button>
-  <button id="btnPrint" type="button" class="primary">打 印</button>
-  <button id="btnWord" type="button">导出 Word</button>
-  <button id="btnPdf" type="button">导出 PDF</button>
+<!-- ==================== 工具栏 ==================== -->
+<div class="toolbar" id="toolbar">
+  <span class="toolbar-title">道路占用承诺书 · A4 公文版式</span>
+  <span class="toolbar-meta">边距 25.4mm 四周 · 每行 28 字</span>
+  <button class="btn"         type="button" onclick="doPreview()">打印预览</button>
+  <button class="btn"         type="button" onclick="doPrint()">打印</button>
+  <button class="btn"         type="button" onclick="exportWord()">下载 Word</button>
+  <button class="btn primary" type="button" onclick="exportPDF()">下载 PDF</button>
+  <button class="btn"         type="button" onclick="runSelfCheck()">文档自检</button>
+  <button class="btn ghost"   type="button" onclick="toggleGuides()">版心参考线</button>
+  <button class="btn ghost"   type="button" onclick="resetDoc()">恢复初始内容</button>
 </div>
 
-<!-- ==================== A4 纸（全局可编辑） ==================== -->
-<div id="page" contenteditable="true" spellcheck="false">
-  <h1 class="doc-title">承诺书</h1>
+<!-- ==================== 文档正文（可编辑） ==================== -->
+<div id="doc" contenteditable="true" spellcheck="false">
 
-  <p>我单位XXXXXXXXXXXXXXXXXXXXX将于202X年X月XX日至202X年XX月XX日占用龙源路（长宁道—裕华道）自行车道、人行道作为安全通道使用。现就市政道路临时占用期间安全责任、文明作业等方面向贵单位作出如下承诺：</p>
+  <!-- ================= 第 1 页 ================= -->
+  <div class="page">
 
-  <p>一、我方严格按照《城市道路管理条例》相关规定和各部门审批内容规范施工，占用自行车道、人行道，不超面积、不超时限，不擅自改变临时占用自行车道、人行道用途。</p>
+    <h1 class="doc-title">承诺书</h1>
 
-  <p>二、我方按照唐山市《市政工程工地扬尘治理强化措施实施办法》的通知要求，对施工范围采用标准的围挡设施进行围蔽作业，并设立相关的安全警示等标识。工程竣工后，我方负责恢复由搭建围挡和施工过程造成损坏的自行车道、人行道等市政设施。</p>
+    <p>我单位XXXXXXXXXXXXXXXXXXXXX将于202X年X月XX日至202X年XX月XX日占用龙源路（长宁道—裕华道）自行车道人行道作为安全通道使用。现就市政道路临时占用期间安全责任、文明作业等方面向贵单位作出如下承诺：</p>
 
-  <p>三、我方施工结束后通知市政相关负责人对占用道路进行现场勘察。造成自行车道、人行道或市政设施损坏的，由我方支付相应的维修费用或恢复至设施原貌。工程质量保质期为自竣工验收合格之日起24个月。</p>
+    <p>一、我方严格按照《城市道路管理条例》相关规定和各部门审批内容规范施工，占用自行车道、人行道，不超面积、不超时限，不擅自改变临时占用自行车道、人行道用途。</p>
 
-  <p>四、在施工期间及质量保质期内，因极端天气、自然灾害等不可抗拒的因素或因我方作业不规范、安全防护设施不到位等原因导致通行人员、周边车辆、我方施工人员等其他任何人身伤害或财产损失的，由我方承担一切赔偿责任和法律后果。</p>
+    <p>二、我方按照唐山市《市政工程工地扬尘治理强化措施实施办法》的通知要求，对施工范围采用标准的围挡设施进行围蔽作业，并设立相关的安全警示等标识。工程竣工后，我方负责恢复由搭建围挡和施工过程造成损坏的自行车道、人行道等市政设施。</p>
 
-  <p>五、我方占用自行车道、人行道等期满后，需继续占用的，在道路挖掘、占用许可证期满前七个工作日以书面形式申请办理新的挖掘占用手续。</p>
+    <p>三、我方施工结束后通知市政相关负责人对占用道路进行现场勘察。造成自行车道、人行道或市政设施损坏的，由我方支付相应的维修费用或恢复至设施原貌。工程质量保质期为自竣工验收合格之日起24个月。</p>
 
-  <p>六、其他未尽事宜双方本着友好协商，进行解决。协商不成的，可向工程所在地的人民法院进行诉讼。</p>
+    <p>四、在施工期间及质量保质期内，因极端天气、自然灾害等不可抗拒的因素或因我方作业不规范、安全防护设施不到位等原因导致通行人员、周边车辆、我方施工人员等其他任何人身伤害或财产损失的，由我方承担一切赔偿责任和法律后果。</p>
 
-  <div class="sign-block">
-    <p>承诺单位（盖章）：</p>
-    <p>负责人（签字）：</p>
-    <p>联系电话：</p>
-    <p>XXXX年XX月XX日</p>
+    <p>五、我方占用自行车道、人行道等期满后，需继续占用的，在道路挖掘、占用许可证期满前七个工作日以书面形式申请办理新的挖掘占用手续。</p>
+
+  </div>
+
+  <!-- ================= 第 2 页 ================= -->
+  <div class="page">
+
+    <p>六、其他未尽事宜双方本着友好协商，进行解决。协商不成的，可向工程所在地的人民法院进行诉讼。</p>
+
+    <p class="sign-right">承诺单位（盖章）：</p>
+    <p class="sign-right">负责人（签字）：</p>
+    <p class="sign-right">联系电话：</p>
+    <p class="sign-right">2026年11月10日</p>
+
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<!-- ==================== 自检面板 ==================== -->
+<div id="check-overlay">
+  <div class="check-panel">
+    <div class="check-head">
+      <h3>文档自检报告</h3>
+      <span class="check-summary" id="check-summary"></span>
+      <button class="check-close" type="button" onclick="closeCheck()">×</button>
+    </div>
+    <div class="check-body" id="check-body"></div>
+    <div class="check-foot">
+      <button class="btn" type="button" onclick="runSelfCheck()">重新检测</button>
+      <button class="btn primary" type="button" onclick="closeCheck()">关闭</button>
+    </div>
   </div>
 </div>
 
-<!-- ==================== PDF 引擎 ==================== -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- ==================== 第三方库 ==================== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-(function () {
-  "use strict";
+/* ============================================================
+   全局常量
+   ============================================================ */
+var DOC_NAME    = "道路占用承诺书";
+var docEl       = document.getElementById("doc");
+var initialHTML = docEl.innerHTML;
+var isExporting = false;
 
-  var page     = document.getElementById('page');
-  var btnPdf   = document.getElementById('btnPdf');
-  var btnWord  = document.getElementById('btnWord');
+var MM_TO_PX    = 96 / 25.4;
+var PAGE_W_MM   = 210;
+var PAGE_H_MM   = 297;
+var PAD_MM      = 25.4;   /* 四周通用边距 */
 
-  /* =========================================================
-     公共页面样式（打印预览 / 导出共用，保证三端布局一致）
-     ========================================================= */
-  var PAGE_CSS = [
-    '@page { size: A4; margin: 0; }',
-    'html, body { margin: 0; padding: 0; background: #e9ecef; }',
-    '.page {',
-    '  width: 210mm; min-height: 297mm; padding: 25mm 22mm; margin: 0 auto;',
-    '  background: #fff; box-sizing: border-box;',
-    '  box-shadow: 0 2px 18px rgba(0,0,0,.16);',
-    '  font-family: "宋体", SimSun, "Songti SC", "STSong", serif;',
-    '  font-size: 12pt; line-height: 1.75; color: #000;',
-    '  word-wrap: break-word; overflow-wrap: break-word;',
-    '}',
-    '.page .doc-title {',
-    '  font-family: "黑体", SimHei, "Heiti SC", "STHeiti", sans-serif;',
-    '  font-size: 18pt; font-weight: 700; text-align: center;',
-    '  letter-spacing: 4.5pt; line-height: 1.5; text-indent: 0;',
-    '  margin: 0 0 9mm 0;',
-    '}',
-    '.page p { margin: 0 0 6pt 0; text-indent: 2em; text-align: justify; line-height: 1.75; }',
-    '.page .sign-block { margin-top: 12mm; text-align: right; }',
-    '.page .sign-block p { text-indent: 0; text-align: right; margin: 0 8mm 6pt 0; }'
-  ].join('\n');
+try { document.execCommand("defaultParagraphSeparator", false, "p"); } catch (e) {}
 
-  /* =========================================================
-     0. 粘贴时只保留纯文本，避免带入外部样式破坏排版
-     ========================================================= */
-  page.addEventListener('paste', function (e) {
-    var cd = e.clipboardData || window.clipboardData;
-    if (!cd) return;
-    var text = cd.getData('text/plain');
-    if (text) {
-      e.preventDefault();
-      try {
-        document.execCommand('insertText', false, text);
-      } catch (err) {
-        /* 极少数旧浏览器不支持，交给默认行为 */
-      }
-    }
-  });
+/* ============================================================
+   Toast
+   ============================================================ */
+var toastTimer = null;
+function toast(msg) {
+  var el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () {
+    el.classList.remove("show");
+  }, 2800);
+}
 
-  /* =========================================================
-     1. 打印预览（新窗口，含独立“打印/关闭”按钮）
-     ========================================================= */
-  document.getElementById('btnPreview').addEventListener('click', function () {
-    var win = window.open('', '_blank');
-    if (!win) {
-      alert('浏览器拦截了弹出窗口。\n请点击地址栏右侧的“允许弹出窗口”后重试，或直接使用【打印】按钮。');
-      return;
-    }
+/* ============================================================
+   粘贴：只保留纯文本
+   ============================================================ */
+docEl.addEventListener("paste", function (e) {
+  e.preventDefault();
+  var text = "";
+  if (e.clipboardData || window.clipboardData) {
+    text = (e.clipboardData || window.clipboardData).getData("text/plain");
+  }
+  document.execCommand("insertText", false, text);
+});
 
-    var doc = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">' +
-      '<title>打印预览 - 承诺书</title><style>' +
-      PAGE_CSS +
-      '.bar { position: fixed; top: 0; left: 0; right: 0; height: 54px; display: flex;' +
-      ' align-items: center; justify-content: center; gap: 12px; background: #fff;' +
-      ' box-shadow: 0 1px 8px rgba(0,0,0,.12); z-index: 99;' +
-      ' font-family: "Microsoft YaHei", sans-serif; }' +
-      '.bar button { padding: 8px 20px; border: 1px solid #2c7be5; background: #2c7be5;' +
-      ' color: #fff; border-radius: 6px; font-size: 14px; cursor: pointer; font-family: inherit; }' +
-      '.bar button.ghost { background: #fff; color: #2c7be5; }' +
-      '.wrap { padding: 76px 0 48px; }' +
-      '@media print { html, body { background: #fff; }' +
-      ' .bar { display: none !important; } .wrap { padding: 0 !important; }' +
-      ' .page { box-shadow: none !important; margin: 0 !important; } }' +
-      '</style></head><body>' +
-      '<div class="bar"><button type="button" onclick="window.print()">打 印</button>' +
-      '<button type="button" class="ghost" onclick="window.close()">关 闭</button></div>' +
-      '<div class="wrap"><div class="page">' + page.innerHTML + '</div></div>' +
-      '</body></html>';
-
-    win.document.open();
-    win.document.write(doc);
-    win.document.close();
-    win.focus();
-  });
-
-  /* =========================================================
-     2. 打印（直接调起系统打印对话框）
-     ========================================================= */
-  document.getElementById('btnPrint').addEventListener('click', function () {
+/* ============================================================
+   打印
+   ============================================================ */
+function doPrint() {
+  try {
+    window.focus();
     window.print();
-  });
+  } catch (e) {
+    alert("打印失败：" + e.message + "\n\n请使用浏览器菜单中的“打印”功能（Ctrl+P）。");
+  }
+}
+function doPreview() {
+  toast("正在打开打印预览… 请勾选「背景图形」并取消「页眉和页脚」");
+  setTimeout(doPrint, 260);
+}
 
-  /* =========================================================
-     3. 导出 Word（.doc，Word 可直接打开）
-     ========================================================= */
-  var WORD_CSS = [
-    '@page WordSection1 { size: 210.0mm 297.0mm; margin: 25.0mm 22.0mm 25.0mm 22.0mm; }',
-    'div.WordSection1 { page: WordSection1; }',
-    'body { font-family: "宋体", SimSun, serif; font-size: 12.0pt; line-height: 175%;' +
-      ' color: #000000; margin: 0; }',
-    'p { margin: 0 0 6.0pt 0; text-indent: 24.0pt; text-align: justify; line-height: 175%; }',
-    '.doc-title { font-family: "黑体", SimHei, sans-serif; font-size: 18.0pt; font-weight: bold;' +
-      ' text-align: center; letter-spacing: 4.5pt; text-indent: 0;' +
-      ' margin: 0 0 9.0mm 0; line-height: 150%; }',
-    '.sign-block { margin-top: 12.0mm; text-align: right; }',
-    '.sign-block p { text-indent: 0; text-align: right; margin: 0 8.0mm 6.0pt 0; }'
-  ].join('\n');
+/* ============================================================
+   版心参考线
+   ============================================================ */
+function toggleGuides() {
+  var on = document.body.classList.toggle("show-guides");
+  toast(on ? "版心参考线：开（红色虚线框内为版心 159.2×246.2mm）"
+           : "版心参考线：关");
+}
 
-  function downloadBlob(blob, filename) {
+/* ============================================================
+   导出 Word
+   ============================================================ */
+var WORD_CSS = [
+  "@page WordSection1 {",
+  "  size: 21.0cm 29.7cm;",
+  "  mso-page-orientation: portrait;",
+  "  margin: 2.54cm;",
+  "  mso-header-margin: 1.5cm;",
+  "  mso-footer-margin: 1.75cm;",
+  "}",
+  "div.WordSection1 { page: WordSection1; }",
+
+  "body {",
+  "  font-family: '仿宋_GB2312', 'FangSong_GB2312', '仿宋', FangSong, SimSun, serif;",
+  "  font-size: 16.0pt;",
+  "  line-height: 28.8pt;",
+  "  color: #000000;",
+  "}",
+
+  "div.page { padding: 0cm; margin: 0cm; page-break-after: always; }",
+  "div.page:last-child { page-break-after: auto; }",
+
+  "h1.doc-title {",
+  "  font-family: '方正小标宋简体', 'FZXiaoBiaoSong-B05S', '华文中宋', 'STZhongsong', SimSun, serif;",
+  "  font-size: 22.0pt;",
+  "  font-weight: bold;",
+  "  text-align: center;",
+  "  letter-spacing: 2.0pt;",
+  "  line-height: 32.0pt;",
+  "  mso-line-height-rule: exactly;",
+  "  margin: 0cm 0cm 8.0pt 0cm;",
+  "  text-indent: 0cm;",
+  "}",
+
+  "p {",
+  "  margin: 0cm;",
+  "  padding: 0cm;",
+  "  text-indent: 32.0pt;",
+  "  mso-char-indent-count: 2.0;",
+  "  text-align: justify;",
+  "  text-justify: inter-ideograph;",
+  "  line-height: 28.8pt;",
+  "  mso-line-height-rule: exactly;",
+  "  font-size: 16.0pt;",
+  "  font-family: '仿宋_GB2312', '仿宋', FangSong, SimSun, serif;",
+  "}",
+
+  "p.sign-right { text-align: right; text-indent: 0cm; mso-char-indent-count: 0; padding-right: 2em; }"
+].join("\n");
+
+function exportWord() {
+  try {
+    var clone = docEl.cloneNode(true);
+    clone.removeAttribute("contenteditable");
+    clone.removeAttribute("spellcheck");
+
+    var html =
+      "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
+      "xmlns:w='urn:schemas-microsoft-com:office:word' " +
+      "xmlns='http://www.w3.org/TR/REC-html40'>" +
+      "<head><meta charset='utf-8'>" +
+      "<title>" + DOC_NAME + "</title>" +
+      "<!--[if gte mso 9]><xml><w:WordDocument>" +
+      "<w:View>Print</w:View><w:Zoom>100</w:Zoom>" +
+      "<w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->" +
+      "<style>" + WORD_CSS + "</style></head>" +
+      "<body><div class='WordSection1'>" + clone.innerHTML + "</div></body></html>";
+
+    var blob = new Blob(["\ufeff", html], { type: "application/msword;charset=utf-8" });
     var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
+    var a = document.createElement("a");
     a.href = url;
-    a.download = filename;
-    a.style.display = 'none';
+    a.download = DOC_NAME + ".doc";
+    a.style.display = "none";
     document.body.appendChild(a);
     a.click();
     setTimeout(function () {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    }, 1500);
+    }, 800);
+
+    toast("Word 文件已开始下载（边距 25.4mm 四周）");
+  } catch (err) {
+    alert("Word 导出失败：" + err.message + "\n\n请改用“打印”，在打印窗口中选择“另存为 PDF”。");
+  }
+}
+
+/* ============================================================
+   导出 PDF
+   ============================================================ */
+function exportPDF() {
+  if (isExporting) return;
+
+  if (typeof window.html2canvas === "undefined" ||
+      typeof window.jspdf === "undefined" ||
+      !window.jspdf.jsPDF) {
+    alert(
+      "PDF 组件未加载成功（可能因为网络原因）。\n\n" +
+      "您可以改用“打印”功能：\n" +
+      "1. 点击“打印”；\n" +
+      "2. 在打印窗口中选择“另存为 PDF”或“Microsoft Print to PDF”。"
+    );
+    return;
   }
 
-  btnWord.addEventListener('click', function () {
-    var html =
-      '<html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
-      'xmlns:w="urn:schemas-microsoft-com:office:word" ' +
-      'xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8">' +
-      '<title>承诺书</title>' +
-      '<!--[if gte mso 9]><xml><w:WordDocument>' +
-      '<w:View>Print</w:View><w:Zoom>100</w:Zoom>' +
-      '<w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->' +
-      '<style>' + WORD_CSS + '</style></head><body>' +
-      '<div class="WordSection1">' + page.innerHTML + '</div></body></html>';
+  isExporting = true;
+  document.body.classList.add("exporting");
 
-    var blob = new Blob(['\ufeff' + html], {
-      type: 'application/msword;charset=utf-8'
-    });
-    downloadBlob(blob, '承诺书（道路占用）.doc');
-  });
+  var jsPDF  = window.jspdf.jsPDF;
+  var pdf    = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+  var pages  = document.querySelectorAll(".page");
+  var index  = 0;
 
-  /* =========================================================
-     4. 导出 PDF
-     ========================================================= */
-  btnPdf.addEventListener('click', function () {
-    /* —— 兜底：引擎未加载则提示改用打印存 PDF —— */
-    if (typeof window.html2pdf === 'undefined') {
-      alert('PDF 组件未能加载（可能网络不通）。\n请点击【打印】按钮，在打印对话框中选择“另存为 PDF”，效果一致。');
+  function renderNext() {
+    if (index >= pages.length) {
+      pdf.save(DOC_NAME + ".pdf");
+      document.body.classList.remove("exporting");
+      isExporting = false;
+      toast("PDF 文件已开始下载（边距与屏幕一致）");
       return;
     }
 
-    var oldShadow  = page.style.boxShadow;
-    var oldOutline = page.style.outline;
+    window.html2canvas(pages[index], {
+      scale: 2,
+      backgroundColor: "#ffffff",
+      useCORS: true,
+      logging: false
+    }).then(function (canvas) {
+      var imgData = canvas.toDataURL("image/jpeg", 0.96);
+      if (index > 0) pdf.addPage();
 
-    /* 导出瞬间去掉阴影/焦点描边，保证 PDF 页面干净、尺寸精确为 210mm */
-    page.style.boxShadow = 'none';
-    page.style.outline   = 'none';
+      var ratio = Math.min(PAGE_W_MM / canvas.width, PAGE_H_MM / canvas.height);
+      var w = canvas.width * ratio;
+      var h = canvas.height * ratio;
 
-    btnPdf.disabled = true;
-    var oldText = btnPdf.textContent;
-    btnPdf.textContent = '正在生成…';
-
-    function restore() {
-      page.style.boxShadow = oldShadow;
-      page.style.outline   = oldOutline;
-      btnPdf.disabled = false;
-      btnPdf.textContent = oldText;
-    }
-
-    var opt = {
-      margin: 0,
-      filename: '承诺书（道路占用）.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-        scrollX: 0,
-        scrollY: -window.scrollY
-      },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'legacy'] }
-    };
-
-    window.html2pdf().set(opt).from(page).save().then(function () {
-      restore();
+      pdf.addImage(imgData, "JPEG", (PAGE_W_MM - w) / 2, 0, w, h, undefined, "FAST");
+      index++;
+      renderNext();
     }).catch(function (err) {
-      restore();
-      alert('PDF 导出失败：' + (err && err.message ? err.message : err) +
-        '\n请改用【打印】按钮，在打印对话框中选择“另存为 PDF”，效果一致。');
+      document.body.classList.remove("exporting");
+      isExporting = false;
+      alert(
+        "PDF 生成失败：" + err.message + "\n\n" +
+        "请改用“打印”，在打印窗口中选择“另存为 PDF”。"
+      );
+    });
+  }
+
+  renderNext();
+}
+
+/* ============================================================
+   恢复初始内容
+   ============================================================ */
+function resetDoc() {
+  if (confirm("确定恢复到承诺书初始内容吗？当前编辑的内容将丢失。")) {
+    docEl.innerHTML = initialHTML;
+    toast("已恢复初始内容");
+  }
+}
+
+/* ============================================================
+   文档自检
+   ============================================================ */
+function runSelfCheck() {
+  var results = [];
+
+  function add(cat, name, pass, detail, level) {
+    results.push({
+      cat: cat, name: name, pass: !!pass,
+      level: level || (pass ? "pass" : "fail"),
+      detail: detail || ""
+    });
+  }
+
+  /* 1. 页面数量 */
+  var pages = document.querySelectorAll(".page");
+  add("页面", "页面数量", pages.length >= 1,
+      "共 " + pages.length + " 页",
+      pages.length === 2 ? "pass" : (pages.length >= 1 ? "warn" : "fail"));
+
+  /* 2. 每页溢出检测 */
+  var availH = (PAGE_H_MM - PAD_MM * 2) * MM_TO_PX;
+  for (var i = 0; i < pages.length; i++) {
+    var page = pages[i];
+    var cs = getComputedStyle(page);
+    var padT = parseFloat(cs.paddingTop);
+    var padB = parseFloat(cs.paddingBottom);
+    var contentH = page.scrollHeight - padT - padB;
+    var ratio = contentH / availH;
+    var level = ratio > 1.01 ? "fail" : (ratio > 0.97 ? "warn" : "pass");
+    add("第" + (i + 1) + "页", "内容高度",
+        ratio <= 1.01,
+        contentH.toFixed(1) + " / " + availH.toFixed(1) + " px（" +
+        (ratio * 100).toFixed(1) + "%）",
+        level);
+  }
+
+  /* 3. 每页宽度 */
+  for (var j = 0; j < pages.length; j++) {
+    var wPage = pages[j].getBoundingClientRect().width;
+    var expectW = PAGE_W_MM * MM_TO_PX;
+    var okW = Math.abs(wPage - expectW) < 2;
+    add("第" + (j + 1) + "页", "页面宽度", okW,
+        wPage.toFixed(1) + " px（应 ≈ " + expectW.toFixed(1) + "）",
+        okW ? "pass" : "warn");
+  }
+
+  /* 4. 每行字符数（实测） */
+  var testSpan = document.createElement("span");
+  testSpan.style.cssText =
+    "font-family:'仿宋_GB2312','仿宋',FangSong,SimSun,serif;" +
+    "font-size:16pt;white-space:nowrap;position:absolute;" +
+    "visibility:hidden;left:-9999px;top:0;";
+  testSpan.textContent = "字".repeat(60);
+  document.body.appendChild(testSpan);
+  var w1char = testSpan.offsetWidth / 60;
+  document.body.removeChild(testSpan);
+
+  var containerW = (PAGE_W_MM - PAD_MM * 2) * MM_TO_PX;
+  var charsPerLine = Math.floor(containerW / w1char);
+  add("版式", "每行字符数", charsPerLine >= 28,
+      "约 " + charsPerLine + " 字 / 行（版心 " + containerW.toFixed(1) + " px）",
+      charsPerLine >= 28 ? "pass" : (charsPerLine >= 26 ? "warn" : "fail"));
+
+  /* 5. 页边距数值 */
+  var ps = getComputedStyle(pages[0]);
+  var padTopMM = parseFloat(ps.paddingTop) / MM_TO_PX;
+  var padBotMM = parseFloat(ps.paddingBottom) / MM_TO_PX;
+  var padLeftMM = parseFloat(ps.paddingLeft) / MM_TO_PX;
+  var padRightMM = parseFloat(ps.paddingRight) / MM_TO_PX;
+  var marginOk =
+    Math.abs(padTopMM - 25.4) < 0.2 &&
+    Math.abs(padBotMM - 25.4) < 0.2 &&
+    Math.abs(padLeftMM - 25.4) < 0.2 &&
+    Math.abs(padRightMM - 25.4) < 0.2;
+  add("版式", "页边距（通用）",
+      marginOk,
+      "上" + padTopMM.toFixed(1) + " 下" + padBotMM.toFixed(1) +
+      " 左" + padLeftMM.toFixed(1) + " 右" + padRightMM.toFixed(1) + " mm",
+      marginOk ? "pass" : "fail");
+
+  /* 6. 字体栈 */
+  var bodyFont = getComputedStyle(pages[0]).fontFamily;
+  add("字体", "正文字体", true, bodyFont, "pass");
+
+  var titleEl = pages[0].querySelector(".doc-title");
+  if (titleEl) {
+    add("字体", "标题字体", true, getComputedStyle(titleEl).fontFamily, "pass");
+  }
+
+  /* 7. 依赖库 */
+  var h2cOk = typeof window.html2canvas !== "undefined";
+  add("依赖", "html2canvas", h2cOk,
+      h2cOk ? "已加载" : "未加载（PDF 导出将不可用）",
+      h2cOk ? "pass" : "fail");
+
+  var jspdfOk = typeof window.jspdf !== "undefined" && !!window.jspdf.jsPDF;
+  add("依赖", "jsPDF", jspdfOk,
+      jspdfOk ? "已加载" : "未加载（PDF 导出将不可用）",
+      jspdfOk ? "pass" : "fail");
+
+  /* 8. Blob 支持 */
+  var blobOk = false;
+  try { new Blob(["t"], { type: "application/msword" }); blobOk = true; } catch (e) {}
+  add("能力", "Blob（Word 导出）", blobOk,
+      blobOk ? "支持" : "不支持", blobOk ? "pass" : "fail");
+
+  /* 9. download 属性 */
+  var dlOk = "download" in document.createElement("a");
+  add("能力", "download 属性", dlOk,
+      dlOk ? "支持" : "不支持", dlOk ? "pass" : "fail");
+
+  /* 10. 打印 API */
+  var printOk = typeof window.print === "function";
+  add("能力", "打印 API", printOk,
+      printOk ? "支持" : "不支持", printOk ? "pass" : "fail");
+
+  /* 11. 内容非空 */
+  var emptyP = 0;
+  pages.forEach(function (p) {
+    p.querySelectorAll("p").forEach(function (pp) {
+      if (!pp.textContent.trim()) emptyP++;
     });
   });
+  add("内容", "空段落", emptyP === 0,
+      emptyP === 0 ? "无" : emptyP + " 个空段落",
+      emptyP === 0 ? "pass" : "warn");
 
-})();
+  showCheckResults(results);
+}
+
+function showCheckResults(results) {
+  var body = document.getElementById("check-body");
+  var summary = document.getElementById("check-summary");
+
+  var passCount = 0, warnCount = 0, failCount = 0;
+  var icons = { pass: "✓", warn: "!", fail: "×" };
+
+  var html = "";
+  results.forEach(function (r) {
+    if (r.level === "pass") passCount++;
+    else if (r.level === "warn") warnCount++;
+    else failCount++;
+
+    html +=
+      '<div class="check-row">' +
+        '<span class="check-icon ' + r.level + '">' + icons[r.level] + '</span>' +
+        '<span class="check-cat">' + escapeHtml(r.cat) + '</span>' +
+        '<span class="check-name">' + escapeHtml(r.name) + '</span>' +
+        '<span class="check-detail">' + escapeHtml(r.detail) + '</span>' +
+      '</div>';
+  });
+
+  body.innerHTML = html;
+
+  var total = results.length;
+  var text, cls;
+  if (failCount > 0) {
+    text = "未通过 " + failCount + " 项 / 共 " + total + " 项";
+    cls = "fail";
+  } else if (warnCount > 0) {
+    text = "通过 " + passCount + " 项，警告 " + warnCount + " 项";
+    cls = "warn";
+  } else {
+    text = "全部通过（" + total + " 项）";
+    cls = "pass";
+  }
+  summary.textContent = text;
+  summary.className = "check-summary " + cls;
+
+  document.getElementById("check-overlay").classList.add("show");
+}
+
+function closeCheck() {
+  document.getElementById("check-overlay").classList.remove("show");
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+document.getElementById("check-overlay").addEventListener("click", function (e) {
+  if (e.target === this) closeCheck();
+});
+
+window.onerror = function (msg, url, line) {
+  console.error("脚本错误：" + msg + " 行号：" + line);
+  return false;
+};
 </script>
 </body>
 </html>
